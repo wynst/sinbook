@@ -11,7 +11,6 @@ end
 
 module Sinatra
   require 'digest/md5'
-  require 'yajl'
 
   class FacebookObject
     def initialize app
@@ -200,10 +199,22 @@ module Sinatra
 
                        "#{k}=" + case v
                                  when Hash
-                                   Yajl::Encoder.encode(v)
+                                   if Object.const_defined?("Yajl") && Yajl.const_defined?("Encoder")
+                                     Yajl::Encoder.encode(v)
+                                   elsif Object.const_defined("JSON")
+                                     JSON.generate(v)
+                                   else
+                                     throw "you need to require either 'yajl' or 'json' for sinbook to work"
+                                   end
                                  when Array
                                    if k == :tags
-                                     Yajl::Encoder.encode(v)
+                                     if Object.const_defined?("Yajl") && Yajl.const_defined?("Encoder")
+                                       Yajl::Encoder.encode(v)
+                                     elsif Object.const_defined("JSON")
+                                       JSON.generate(v)
+                                     else
+                                       throw "you need to require either 'yajl' or 'json' for sinbook to work"
+                                     end
                                    else
                                      v.join(',')
                                    end
